@@ -1,0 +1,4 @@
+{"phase":"plan","action":"create ticket","target":"crm","approval":"required","dryRun":true}
+{"phase":"plan","action":"send summary","target":"slack","approval":"required","dryRun":true}
+{"phase":"execution","action":"create ticket","target":"crm","approved":false,"dryRun":true}
+{"phase":"execution","action":"send summary","target":"slack","approved":true,"dryRun":false}
