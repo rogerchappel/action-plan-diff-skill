@@ -9,10 +9,31 @@
   "scripts": {
     "test": "node --test",
     "check": "node --check src/*.js test/*.js",
+    "lint": "npm run check",
     "build": "node scripts/build-check.js",
-    "smoke": "node src/cli.js fixtures/sample.jsonl --format markdown"
+    "smoke": "node src/cli.js fixtures/sample.jsonl --format markdown",
+    "package:smoke": "npm pack --dry-run",
+    "release:check": "npm run lint && npm test && npm run build && npm run smoke && npm run package:smoke"
   },
   "keywords": ["agent", "skill", "audit", "dry-run", "cli"],
+  "files": [
+    "src",
+    "fixtures",
+    "scripts",
+    "docs",
+    "SKILL.md",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rogerchappel/action-plan-diff-skill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rogerchappel/action-plan-diff-skill/issues"
+  },
+  "homepage": "https://github.com/rogerchappel/action-plan-diff-skill#readme",
   "license": "MIT",
   "engines": {
     "node": ">=20"

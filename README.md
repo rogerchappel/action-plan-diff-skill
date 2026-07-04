@@ -10,6 +10,12 @@ npm run smoke
 node src/cli.js fixtures/sample.jsonl --format json
 ```
 
+Run the full local release gate before opening a release PR:
+
+```sh
+npm run release:check
+```
+
 ## What it checks
 
 - Missing plans or action evidence.
