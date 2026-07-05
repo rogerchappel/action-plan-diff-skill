@@ -11,7 +11,7 @@
     "check": "node --check src/*.js test/*.js",
     "lint": "npm run check",
     "build": "node scripts/build-check.js",
-    "smoke": "node src/cli.js fixtures/sample.jsonl --format markdown",
+    "smoke": "node src/cli.js --help && node src/cli.js fixtures/sample.jsonl --format markdown",
     "package:smoke": "npm pack --dry-run",
     "release:check": "npm run lint && npm test && npm run build && npm run smoke && npm run package:smoke"
   },
