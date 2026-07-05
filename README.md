@@ -7,6 +7,7 @@ Compare dry-run action plans with execution traces and report approval drift.
 ```sh
 npm test
 npm run smoke
+node src/cli.js --help
 node src/cli.js fixtures/sample.jsonl --format json
 ```
 
