@@ -15,7 +15,13 @@
     "package:smoke": "npm pack --dry-run",
     "release:check": "npm run lint && npm test && npm run build && npm run smoke && npm run package:smoke"
   },
-  "keywords": ["agent", "skill", "audit", "dry-run", "cli"],
+  "keywords": [
+    "agent",
+    "skill",
+    "audit",
+    "dry-run",
+    "cli"
+  ],
   "files": [
     "src",
     "fixtures",
