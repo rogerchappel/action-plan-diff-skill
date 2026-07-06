@@ -22,3 +22,13 @@ if (missing.length > 0) {
 }
 
 console.log(`Verified ${bins.length} package bin target(s).`);
+
+for (const entry of ['README.md', 'LICENSE', 'SECURITY.md', 'CHANGELOG.md', 'CONTRIBUTING.md']) {
+  if (!pkg.files?.includes(entry)) {
+    throw new Error(`package files allowlist is missing ${entry}`);
+  }
+
+  await access(new URL(`../${entry}`, import.meta.url));
+}
+
+console.log('Verified package support documents.');

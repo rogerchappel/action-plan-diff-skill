@@ -17,6 +17,11 @@ Run the full local release gate before opening a release PR:
 npm run release:check
 ```
 
+Use `npm run package:smoke` or `npm pack --dry-run` when package contents
+change. The package allowlist includes the CLI source, fixtures, docs, skill
+instructions, README, license, security policy, changelog, and contribution
+guide.
+
 ## What it checks
 
 - Missing plans or action evidence.
@@ -41,6 +46,16 @@ const report = runAudit(rawTranscript, { format: 'markdown' });
 ## Safety notes
 
 This package is local-first. It reads fixtures, prints reports, and does not call live connector APIs. Treat critical findings as blockers before approving external actions.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Keep changes small, local-first, and
+covered by the release gate above.
+
+## Security
+
+See [SECURITY.md](SECURITY.md). Do not include secrets, private logs, or
+customer data in public issues or fixtures.
 
 ## Limitations
 
