@@ -8,6 +8,7 @@ Compare dry-run action plans with execution traces and report approval drift.
 npm test
 npm run smoke
 node src/cli.js --help
+node src/cli.js --version
 node src/cli.js fixtures/sample.jsonl --format json
 ```
 
@@ -32,7 +33,7 @@ guide.
 ## CLI
 
 ```sh
-action-plan-diff-skill <fixture.jsonl|notes.txt> [--format markdown|json] [--output report.md]
+action-plan-diff-skill <fixture.jsonl|notes.txt> [--format markdown|json] [--output report.md] [--version]
 ```
 
 ## Library
