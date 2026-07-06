@@ -9,6 +9,8 @@ published.
 
 ### Added
 
+- CLI `--version` support for support reports and package smoke checks.
+- Package smoke validation that executes each declared bin version command.
 - Package smoke coverage for CLI bin entries and support documents.
 - Release-readiness package metadata for repository, issue, and homepage links.
 

@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 import { readFileSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { runAudit } from './index.js';
+
+const require = createRequire(import.meta.url);
+const { version } = require('../package.json');
 
 function parseArgs(argv) {
   const args = { format: 'markdown', output: null, file: null };
@@ -15,8 +19,13 @@ function parseArgs(argv) {
 }
 
 const args = parseArgs(process.argv.slice(2));
+if (args.file === '--version') {
+  console.log(version);
+  process.exit(0);
+}
+
 if (!args.file || args.file === '--help') {
-  console.log('Usage: action-plan-diff-skill <fixture.jsonl|notes.txt> [--format markdown|json] [--output report.md]');
+  console.log('Usage: action-plan-diff-skill <fixture.jsonl|notes.txt> [--format markdown|json] [--output report.md] [--version]');
   process.exit(args.file === '--help' ? 0 : 1);
 }
 const report = runAudit(readFileSync(args.file, 'utf8'), { format: args.format });
