@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { access } from 'node:fs/promises';
 import { readFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
@@ -42,3 +43,33 @@ for (const entry of ['README.md', 'LICENSE', 'SECURITY.md', 'CHANGELOG.md', 'CON
 }
 
 console.log('Verified package support documents.');
+
+const expectedPackedFiles = [
+  'src/cli.js',
+  'src/index.js',
+  'src/analyzer.js',
+  'fixtures/sample.jsonl',
+  'scripts/verify-package-bin.mjs',
+  'docs/RELEASE_CANDIDATE.md',
+  'SKILL.md',
+  'README.md',
+  'LICENSE',
+  'SECURITY.md',
+  'CHANGELOG.md',
+  'CONTRIBUTING.md'
+];
+
+const output = execFileSync('npm', ['pack', '--dry-run', '--json'], {
+  encoding: 'utf8',
+  stdio: ['ignore', 'pipe', 'inherit']
+});
+
+const [pack] = JSON.parse(output);
+const publishedFiles = new Set(pack.files.map((file) => file.path));
+const missingPackedFiles = expectedPackedFiles.filter((file) => !publishedFiles.has(file));
+
+if (missingPackedFiles.length > 0) {
+  throw new Error(`package dry-run missing expected file(s): ${missingPackedFiles.join(', ')}`);
+}
+
+console.log(`Verified package dry-run contents (${pack.files.length} file(s)).`);
