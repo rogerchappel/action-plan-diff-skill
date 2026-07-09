@@ -15,8 +15,13 @@ node src/cli.js fixtures/sample.jsonl --format json
 Run the full local release gate before opening a release PR:
 
 ```sh
+npm run release:readiness
 npm run release:check
 ```
+
+`release:readiness` validates package metadata, npm allowlist coverage,
+required support docs, CLI bin metadata, and CI presence before the heavier
+runtime smoke and pack checks run.
 
 Use `npm run package:smoke` or `npm pack --dry-run` when package contents
 change. The package allowlist includes the CLI source, fixtures, docs, skill
