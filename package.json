@@ -13,7 +13,8 @@
     "build": "node scripts/build-check.js",
     "smoke": "node src/cli.js --help && node src/cli.js --version && node src/cli.js fixtures/sample.jsonl --format markdown",
     "package:smoke": "node scripts/verify-package-bin.mjs && npm pack --dry-run",
-    "release:check": "npm run lint && npm test && npm run build && npm run smoke && npm run package:smoke"
+    "release:readiness": "node scripts/validate-release-readiness.mjs",
+    "release:check": "npm run release:readiness && npm run lint && npm test && npm run build && npm run smoke && npm run package:smoke"
   },
   "keywords": [
     "agent",
