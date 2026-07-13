@@ -35,6 +35,19 @@ guide.
 - Approval and dry-run boundary drift.
 - Fixture shape problems that make a review hard to trust.
 
+## Verification
+
+Run the same checks used for release-readiness before publishing or opening a release PR:
+
+```bash
+npm run check
+npm test
+npm run build
+npm run smoke
+npm run release:check
+npm pack --dry-run
+```
+
 ## CLI
 
 ```sh
