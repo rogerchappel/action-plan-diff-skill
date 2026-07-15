@@ -79,3 +79,7 @@ customer data in public issues or fixtures.
 ## Limitations
 
 The analyzer is intentionally deterministic and rule-based. It cannot prove intent, authenticate account state, or replace human review for sensitive operations.
+
+## Release notes
+
+Before tagging a release, confirm the smoke fixture still represents the intended workflow and summarize any changed output, limitations, or operator steps in the PR.
