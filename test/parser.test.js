@@ -13,3 +13,13 @@ test('parses plain text lines', () => {
   assert.equal(records.length, 2);
   assert.equal(records[0].role, 'note');
 });
+
+test('preserves structured records in mixed jsonl and plain text input', () => {
+  const records = parseInput('{"type":"tool","tool":"exec","action":"deploy"}\nOperator note');
+
+  assert.equal(records[0].role, 'tool');
+  assert.equal(records[0].tool, 'exec');
+  assert.match(records[0].text, /deploy/);
+  assert.equal(records[1].role, 'note');
+  assert.equal(records[1].content, 'Operator note');
+});
