@@ -3,17 +3,14 @@ export function parseInput(raw) {
   if (!trimmed) return [];
   const lines = trimmed.split(/\r?\n/).filter(Boolean);
   const jsonRecords = [];
-  let jsonCount = 0;
-  for (const line of lines) {
+  for (const [index, line] of lines.entries()) {
     try {
       jsonRecords.push(JSON.parse(line));
-      jsonCount += 1;
     } catch {
-      jsonRecords.push({ role: 'note', content: line });
+      jsonRecords.push({ role: 'note', content: line, index });
     }
   }
-  if (jsonCount === lines.length) return jsonRecords.map(normalizeRecord);
-  return lines.map((line, index) => normalizeRecord({ role: 'note', content: line, index }));
+  return jsonRecords.map(normalizeRecord);
 }
 
 export function normalizeRecord(record) {
