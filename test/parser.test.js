@@ -12,6 +12,10 @@ test('parses plain text lines', () => {
   const records = parseInput('Plan: inspect\nValidation: npm test');
   assert.equal(records.length, 2);
   assert.equal(records[0].role, 'note');
+  assert.equal(records[0].phase, 'plan');
+  assert.equal(records[0].content, 'inspect');
+  assert.equal(records[1].phase, 'validation');
+  assert.equal(records[1].content, 'npm test');
 });
 
 test('preserves structured records in mixed jsonl and plain text input', () => {
