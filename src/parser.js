@@ -7,10 +7,19 @@ export function parseInput(raw) {
     try {
       jsonRecords.push(JSON.parse(line));
     } catch {
-      jsonRecords.push({ role: 'note', content: line, index });
+      jsonRecords.push(parsePlainTextLine(line, index));
     }
   }
   return jsonRecords.map(normalizeRecord);
+}
+
+function parsePlainTextLine(line, index) {
+  const section = line.match(/^\s*(plan|action|execution|validation|result)\s*:\s*(.*)$/i);
+  if (!section) return { role: 'note', content: line, index };
+
+  const name = section[1].toLowerCase();
+  const phase = name === 'plan' ? 'plan' : name === 'validation' ? 'validation' : 'execution';
+  return { role: 'note', phase, content: section[2].trim(), index };
 }
 
 export function normalizeRecord(record) {
