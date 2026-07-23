@@ -1,6 +1,6 @@
 export function analyze(records) {
-  const planned = records.filter((record) => record.phase === 'plan' || /\bplan\b/.test(record.text));
-  const executed = records.filter((record) => record.phase === 'execution' || /execution|executed|result/.test(record.text));
+  const planned = records.filter((record) => matchesPhase(record, 'plan', /\bplan\b/));
+  const executed = records.filter((record) => matchesPhase(record, 'execution', /execution|executed|result/));
   const findings = [];
   const plannedKeys = new Set(planned.map(actionKey));
   const executedKeys = new Set(executed.map(actionKey));
@@ -18,6 +18,10 @@ export function analyze(records) {
   if (!executed.length) findings.push(finding('high', 'missing-execution-evidence', 'No execution evidence was found.'));
   if (!findings.length) findings.push(finding('info', 'plan-matched', 'Execution matched the dry-run plan.'));
   return { summary: summarize(findings), findings, stats: { planned: planned.length, executed: executed.length } };
+}
+
+function matchesPhase(record, phase, fallbackPattern) {
+  return typeof record.phase === 'string' ? record.phase === phase : fallbackPattern.test(record.text);
 }
 
 function actionKey(record) {
