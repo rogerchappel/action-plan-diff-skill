@@ -35,6 +35,10 @@ guide.
 - Approval and dry-run boundary drift.
 - Fixture shape problems that make a review hard to trust.
 
+Structured records with a string `phase` use that phase as authoritative.
+Keyword inference is reserved for unstructured notes, so text such as
+`"completed according to plan"` cannot turn execution evidence into a plan.
+
 ## Verification
 
 Run the same checks used for release-readiness before publishing or opening a release PR:
