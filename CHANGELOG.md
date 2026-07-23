@@ -7,6 +7,11 @@ published.
 
 ## [Unreleased]
 
+### Fixed
+
+- Respect explicit structured phases before applying plain-text plan and
+  execution keyword inference.
+
 ### Added
 
 - CLI `--version` support for support reports and package smoke checks.
