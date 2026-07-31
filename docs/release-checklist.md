@@ -7,7 +7,8 @@ Use this checklist before cutting a public release for action-plan-diff-skill.
 - Run `npm run release:check` from a clean checkout.
 - Confirm the CI release-readiness job passes on the release PR.
 - Review the npm pack dry-run output for unexpected files or missing runtime assets.
-- Exercise the CLI smoke path for `action-plan-diff-skill` with the checked-in fixture.
+- Confirm the package smoke test installs the packed artifact, imports
+  `runAudit` by package name, audits its fixture, and exercises the installed CLI.
 
 ## Review notes
 
