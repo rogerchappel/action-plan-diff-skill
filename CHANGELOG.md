@@ -9,6 +9,8 @@ published.
 
 ### Fixed
 
+- Expose the documented `runAudit` library API from the package root and verify
+  both the library and CLI from an installed packed artifact.
 - Respect explicit structured phases before applying plain-text plan and
   execution keyword inference.
 
