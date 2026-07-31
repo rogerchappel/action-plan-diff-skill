@@ -1,7 +1,8 @@
 import { execFileSync } from 'node:child_process';
-import { access } from 'node:fs/promises';
-import { readFile } from 'node:fs/promises';
+import { access, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
@@ -73,3 +74,47 @@ if (missingPackedFiles.length > 0) {
 }
 
 console.log(`Verified package dry-run contents (${pack.files.length} file(s)).`);
+
+const consumerDir = await mkdtemp(join(tmpdir(), 'action-plan-diff-package-smoke-'));
+
+try {
+  const packOutput = execFileSync('npm', ['pack', '--json', '--pack-destination', consumerDir], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'inherit']
+  });
+  const [packedArtifact] = JSON.parse(packOutput);
+  const tarball = join(consumerDir, packedArtifact.filename);
+
+  execFileSync('npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund', tarball], {
+    cwd: consumerDir,
+    stdio: 'inherit'
+  });
+
+  const fixture = [
+    JSON.stringify({ phase: 'plan', action: 'send summary', target: 'slack', approval: 'required', dryRun: true }),
+    JSON.stringify({ phase: 'execution', action: 'send summary', target: 'slack', approved: true, dryRun: false })
+  ].join('\n');
+  const librarySmoke = [
+    "import { runAudit } from 'action-plan-diff-skill';",
+    `const report = runAudit(${JSON.stringify(fixture)}, { format: 'markdown' });`,
+    "if (typeof report !== 'string' || !report.includes('send summary')) throw new Error('runAudit returned an invalid report');"
+  ].join('\n');
+
+  execFileSync('node', ['--input-type=module', '--eval', librarySmoke], {
+    cwd: consumerDir,
+    stdio: 'inherit'
+  });
+
+  const installedBin = join(consumerDir, 'node_modules', '.bin', 'action-plan-diff-skill');
+  const installedVersion = execFileSync(installedBin, ['--version'], {
+    cwd: consumerDir,
+    encoding: 'utf8'
+  }).trim();
+  if (installedVersion !== pkg.version) {
+    throw new Error(`installed CLI --version returned ${JSON.stringify(installedVersion)}, expected ${pkg.version}`);
+  }
+
+  console.log('Verified installed tarball library import, audit output, and CLI.');
+} finally {
+  await rm(consumerDir, { recursive: true, force: true });
+}
