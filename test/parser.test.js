@@ -27,3 +27,10 @@ test('preserves structured records in mixed jsonl and plain text input', () => {
   assert.equal(records[1].role, 'note');
   assert.equal(records[1].content, 'Operator note');
 });
+
+test('rejects JSONL primitives with an actionable input error', () => {
+  assert.throws(
+    () => parseInput('null'),
+    /Input line 1 must be a JSON object; received null/
+  );
+});
