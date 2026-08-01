@@ -5,13 +5,21 @@ export function parseInput(raw) {
   const jsonRecords = [];
   for (const [index, line] of lines.entries()) {
     try {
-      jsonRecords.push(JSON.parse(line));
-    } catch {
+      const record = JSON.parse(line);
+      if (record === null || typeof record !== 'object' || Array.isArray(record)) {
+        const kind = record === null ? 'null' : Array.isArray(record) ? 'array' : typeof record;
+        throw new InvalidRecordError(`Input line ${index + 1} must be a JSON object; received ${kind}`);
+      }
+      jsonRecords.push(record);
+    } catch (error) {
+      if (error instanceof InvalidRecordError) throw error;
       jsonRecords.push(parsePlainTextLine(line, index));
     }
   }
   return jsonRecords.map(normalizeRecord);
 }
+
+class InvalidRecordError extends Error {}
 
 function parsePlainTextLine(line, index) {
   const section = line.match(/^\s*(plan|action|execution|validation|result)\s*:\s*(.*)$/i);
