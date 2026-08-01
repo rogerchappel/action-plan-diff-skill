@@ -55,8 +55,13 @@ npm pack --dry-run
 ## CLI
 
 ```sh
-action-plan-diff-skill <fixture.jsonl|notes.txt> [--format markdown|json] [--output report.md] [--version]
+action-plan-diff-skill <fixture.jsonl|notes.txt> [--format <markdown|json>] [--json] [--output report.md] [--help] [--version]
 ```
+
+`--json` is shorthand for `--format json`. Each JSONL line must contain an
+object; primitives and arrays are rejected with the input line number. Unknown
+options, extra positional arguments, missing option values, and unsupported
+formats print a concise error to stderr and exit nonzero.
 
 ## Library
 
