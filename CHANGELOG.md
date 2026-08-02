@@ -9,6 +9,9 @@ published.
 
 ### Fixed
 
+- Block structured execution records whose `dryRun` state is missing or not a
+  boolean, validate optional `approved` values, and require explicit approval
+  for live execution.
 - Reject invalid CLI arguments and non-object JSONL records with actionable
   errors instead of silently ignoring input or emitting an internal TypeError.
 - Expose the documented `runAudit` library API from the package root and verify
