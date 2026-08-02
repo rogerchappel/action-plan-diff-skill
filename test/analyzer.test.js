@@ -55,3 +55,47 @@ test('does not treat an explicit plan mentioning a result as executed', () => {
   assert.ok(result.findings.some((finding) => finding.code === 'missing-execution-evidence'));
   assert.ok(result.findings.some((finding) => finding.code === 'planned-action-not-executed'));
 });
+
+test('requires an explicit boolean dryRun state for structured execution records', () => {
+  for (const execution of [
+    '{"phase":"execution","action":"inspect","target":"local"}',
+    '{"phase":"execution","action":"inspect","target":"local","dryRun":"false"}'
+  ]) {
+    const records = parseInput(`{"phase":"plan","action":"inspect","target":"local","dryRun":true}\n${execution}`);
+    const result = analyze(records);
+
+    assert.equal(result.summary.status, 'blocked');
+    assert.ok(result.findings.some((finding) => finding.code === 'invalid-execution-dry-run'));
+    assert.ok(!result.findings.some((finding) => finding.code === 'plan-matched'));
+  }
+});
+
+test('accepts dry-run execution and validates an approved value when supplied', () => {
+  const valid = analyze(parseInput(`{"phase":"plan","action":"inspect","dryRun":true}
+{"phase":"execution","action":"inspect","dryRun":true,"approved":false}`));
+  assert.equal(valid.summary.status, 'ready');
+  assert.ok(valid.findings.some((finding) => finding.code === 'plan-matched'));
+
+  const malformed = analyze(parseInput(`{"phase":"plan","action":"inspect","dryRun":true}
+{"phase":"execution","action":"inspect","dryRun":true,"approved":"true"}`));
+  assert.equal(malformed.summary.status, 'blocked');
+  assert.ok(malformed.findings.some((finding) => finding.code === 'invalid-execution-approval'));
+});
+
+test('requires approved true for live execution', () => {
+  for (const approved of [undefined, false]) {
+    const approval = approved === undefined ? '' : `,"approved":${approved}`;
+    const result = analyze(parseInput(`{"phase":"plan","action":"deploy","dryRun":true}
+{"phase":"execution","action":"deploy","dryRun":false${approval}}`));
+
+    assert.equal(result.summary.status, 'blocked');
+    assert.ok(result.findings.some((finding) => finding.code === 'live-action-without-approval'));
+    assert.ok(result.findings.some((finding) => finding.code === 'dry-run-drift'));
+  }
+
+  const approved = analyze(parseInput(`{"phase":"plan","action":"deploy","dryRun":true}
+{"phase":"execution","action":"deploy","dryRun":false,"approved":true}`));
+  assert.equal(approved.summary.status, 'blocked');
+  assert.ok(!approved.findings.some((finding) => finding.code === 'live-action-without-approval'));
+  assert.ok(approved.findings.some((finding) => finding.code === 'dry-run-drift'));
+});

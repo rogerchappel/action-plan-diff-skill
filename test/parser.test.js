@@ -16,6 +16,12 @@ test('parses plain text lines', () => {
   assert.equal(records[0].content, 'inspect');
   assert.equal(records[1].phase, 'validation');
   assert.equal(records[1].content, 'npm test');
+  assert.equal(records[0].structured, false);
+});
+
+test('marks JSONL objects as structured records', () => {
+  const [record] = parseInput('{"phase":"execution","action":"inspect","dryRun":true}');
+  assert.equal(record.structured, true);
 });
 
 test('preserves structured records in mixed jsonl and plain text input', () => {

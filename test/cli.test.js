@@ -74,3 +74,16 @@ test('writes a report to the requested output file', () => {
     execFileSync('node', ['-e', `require('fs').rmSync('${output}', { force: true })`]);
   }
 });
+
+test('reports malformed structured execution state as blocking JSON', () => {
+  const input = `.tmp-cli-input-${process.pid}.jsonl`;
+  try {
+    execFileSync('node', ['-e', `require('fs').writeFileSync('${input}', '{"phase":"plan","action":"inspect","dryRun":true}\\n{"phase":"execution","action":"inspect","dryRun":"true"}\\n')`]);
+    const result = runCli([input, '--json']);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(JSON.parse(result.stdout).summary.status, 'blocked');
+    assert.match(result.stdout, /invalid-execution-dry-run/);
+  } finally {
+    execFileSync('node', ['-e', `require('fs').rmSync('${input}', { force: true })`]);
+  }
+});
