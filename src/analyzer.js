@@ -8,6 +8,12 @@ export function analyze(records) {
   for (const record of executed) {
     const key = actionKey(record);
     if (!plannedKeys.has(key)) findings.push(finding('critical', 'unplanned-action', `Executed action was not in the plan: ${key}`));
+    if (record.structured && typeof record.dryRun !== 'boolean') {
+      findings.push(finding('critical', 'invalid-execution-dry-run', `Structured execution dryRun must be boolean: ${key}`));
+    }
+    if (record.structured && record.approved !== undefined && typeof record.approved !== 'boolean') {
+      findings.push(finding('critical', 'invalid-execution-approval', `Structured execution approved must be boolean when provided: ${key}`));
+    }
     if (record.dryRun === false && record.approved !== true) findings.push(finding('critical', 'live-action-without-approval', `Live action lacks approval: ${key}`));
     if (record.dryRun === false) findings.push(finding('high', 'dry-run-drift', `Action left dry-run mode: ${key}`));
   }
