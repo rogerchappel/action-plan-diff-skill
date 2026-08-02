@@ -3,8 +3,14 @@
 Use this skill when an agent run, connector dry-run, or skill release candidate needs local evidence that the work stayed inside its stated boundaries.
 
 ## Inputs
-- JSONL transcript where each line is an object with optional `role`, `type`, `tool`, and `content` fields.
+- JSONL transcript where each line is an object. Execution records use
+  `{"phase":"execution","action":"...","dryRun":true}`; `dryRun` is required
+  and boolean, `approved` is boolean when present, and `dryRun:false` requires
+  `approved:true`.
 - Plain text notes containing plan, action, validation, and result sections.
+
+Plain text can compare action labels but cannot prove typed dry-run or approval
+state. Use JSONL for execution-boundary review.
 
 ## Side-effect boundaries
 - Read local fixtures only.

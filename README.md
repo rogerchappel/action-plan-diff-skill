@@ -39,6 +39,13 @@ Structured records with a string `phase` use that phase as authoritative.
 Keyword inference is reserved for unstructured notes, so text such as
 `"completed according to plan"` cannot turn execution evidence into a plan.
 
+Structured JSONL execution records (`"phase":"execution"`) must include
+`dryRun` as a boolean. When `approved` is present it must also be a boolean,
+and live execution (`"dryRun":false`) requires `"approved":true`. A live
+execution remains approval drift even when approved, because it left dry-run
+mode. Missing or string values such as `"dryRun":"false"` produce blocking
+contract findings instead of a `plan-matched` result.
+
 ## Verification
 
 Run the same checks used for release-readiness before publishing or opening a release PR:
@@ -62,6 +69,10 @@ action-plan-diff-skill <fixture.jsonl|notes.txt> [--format <markdown|json>] [--j
 object; primitives and arrays are rejected with the input line number. Unknown
 options, extra positional arguments, missing option values, and unsupported
 formats print a concise error to stderr and exit nonzero.
+
+Plain-text sections are supported for lightweight comparisons, but plain text
+cannot encode or prove typed `dryRun` and `approved` state. Use structured
+JSONL whenever the report is intended as execution-boundary evidence.
 
 ## Library
 
