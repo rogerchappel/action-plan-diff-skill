@@ -10,7 +10,7 @@ export function parseInput(raw) {
         const kind = record === null ? 'null' : Array.isArray(record) ? 'array' : typeof record;
         throw new InvalidRecordError(`Input line ${index + 1} must be a JSON object; received ${kind}`);
       }
-      jsonRecords.push(record);
+      jsonRecords.push({ ...record, structured: true });
     } catch (error) {
       if (error instanceof InvalidRecordError) throw error;
       jsonRecords.push(parsePlainTextLine(line, index));
@@ -23,11 +23,11 @@ class InvalidRecordError extends Error {}
 
 function parsePlainTextLine(line, index) {
   const section = line.match(/^\s*(plan|action|execution|validation|result)\s*:\s*(.*)$/i);
-  if (!section) return { role: 'note', content: line, index };
+  if (!section) return { role: 'note', content: line, index, structured: false };
 
   const name = section[1].toLowerCase();
   const phase = name === 'plan' ? 'plan' : name === 'validation' ? 'validation' : 'execution';
-  return { role: 'note', phase, content: section[2].trim(), index };
+  return { role: 'note', phase, content: section[2].trim(), index, structured: false };
 }
 
 export function normalizeRecord(record) {
