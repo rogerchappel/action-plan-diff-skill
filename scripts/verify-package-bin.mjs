@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { access, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { access, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -114,7 +114,24 @@ try {
     throw new Error(`installed CLI --version returned ${JSON.stringify(installedVersion)}, expected ${pkg.version}`);
   }
 
-  console.log('Verified installed tarball library import, audit output, and CLI.');
+  const invalidIdentityFixture = join(consumerDir, 'missing-action.jsonl');
+  await writeFile(invalidIdentityFixture, [
+    JSON.stringify({ phase: 'plan', dryRun: true }),
+    JSON.stringify({ phase: 'execution', dryRun: true })
+  ].join('\n'));
+  const invalidIdentityReport = JSON.parse(execFileSync(installedBin, [invalidIdentityFixture, '--json'], {
+    cwd: consumerDir,
+    encoding: 'utf8'
+  }));
+  const invalidIdentityCodes = new Set(invalidIdentityReport.findings.map((finding) => finding.code));
+  if (invalidIdentityReport.summary.status !== 'blocked'
+    || !invalidIdentityCodes.has('invalid-plan-action')
+    || !invalidIdentityCodes.has('invalid-execution-action')
+    || invalidIdentityCodes.has('plan-matched')) {
+    throw new Error('installed CLI did not block missing structured action identities');
+  }
+
+  console.log('Verified installed tarball library import, audit output, CLI, and identity diagnostics.');
 } finally {
   await rm(consumerDir, { recursive: true, force: true });
 }
