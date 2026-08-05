@@ -9,6 +9,9 @@ published.
 
 ### Fixed
 
+- Require non-empty action identities on structured plan and execution records,
+  normalize action and target matching, and block incomplete records instead of
+  matching them through a shared fallback identity.
 - Block structured execution records whose `dryRun` state is missing or not a
   boolean, validate optional `approved` values, and require explicit approval
   for live execution.
