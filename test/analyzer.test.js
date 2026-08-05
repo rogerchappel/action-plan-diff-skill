@@ -82,6 +82,50 @@ test('accepts dry-run execution and validates an approved value when supplied', 
   assert.ok(malformed.findings.some((finding) => finding.code === 'invalid-execution-approval'));
 });
 
+test('requires a non-empty action identity on structured plan records', () => {
+  for (const action of [undefined, '', '   ']) {
+    const plan = { phase: 'plan', dryRun: true };
+    if (action !== undefined) plan.action = action;
+    const records = parseInput(`${JSON.stringify(plan)}\n{"phase":"execution","action":"inspect","dryRun":true}`);
+    const result = analyze(records);
+
+    assert.equal(result.summary.status, 'blocked');
+    assert.ok(result.findings.some((finding) => finding.code === 'invalid-plan-action'));
+    assert.ok(!result.findings.some((finding) => finding.code === 'plan-matched'));
+  }
+});
+
+test('requires a non-empty action identity on structured execution records', () => {
+  for (const action of [undefined, '', '   ']) {
+    const execution = { phase: 'execution', dryRun: true };
+    if (action !== undefined) execution.action = action;
+    const records = parseInput(`{"phase":"plan","action":"inspect","dryRun":true}\n${JSON.stringify(execution)}`);
+    const result = analyze(records);
+
+    assert.equal(result.summary.status, 'blocked');
+    assert.ok(result.findings.some((finding) => finding.code === 'invalid-execution-action'));
+    assert.ok(!result.findings.some((finding) => finding.code === 'plan-matched'));
+  }
+});
+
+test('normalizes structured action and target identity for matching', () => {
+  const result = analyze(parseInput(`{"phase":"plan","action":" Inspect ","target":" Local ","dryRun":true}
+{"phase":"execution","action":"inspect","target":"local","dryRun":true}`));
+
+  assert.equal(result.summary.status, 'ready');
+  assert.ok(result.findings.some((finding) => finding.code === 'plan-matched'));
+});
+
+test('keeps otherwise identical structured actions distinct by target', () => {
+  const result = analyze(parseInput(`{"phase":"plan","action":"inspect","target":"staging","dryRun":true}
+{"phase":"execution","action":"inspect","target":"production","dryRun":true}`));
+
+  assert.equal(result.summary.status, 'blocked');
+  assert.ok(result.findings.some((finding) => finding.code === 'unplanned-action'));
+  assert.ok(result.findings.some((finding) => finding.code === 'planned-action-not-executed'));
+  assert.ok(!result.findings.some((finding) => finding.code === 'plan-matched'));
+});
+
 test('requires approved true for live execution', () => {
   for (const approved of [undefined, false]) {
     const approval = approved === undefined ? '' : `,"approved":${approved}`;
