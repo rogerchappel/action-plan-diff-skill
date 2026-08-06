@@ -13,6 +13,9 @@ export function parseInput(raw) {
       jsonRecords.push({ ...record, structured: true });
     } catch (error) {
       if (error instanceof InvalidRecordError) throw error;
+      if (/^[{[]/.test(line.trimStart())) {
+        throw new InvalidRecordError(`Input line ${index + 1} contains malformed JSON`);
+      }
       jsonRecords.push(parsePlainTextLine(line, index));
     }
   }

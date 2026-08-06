@@ -87,3 +87,16 @@ test('reports malformed structured execution state as blocking JSON', () => {
     execFileSync('node', ['-e', `require('fs').rmSync('${input}', { force: true })`]);
   }
 });
+
+test('rejects malformed JSON-looking input with a concise line diagnostic', () => {
+  const input = `.tmp-cli-malformed-${process.pid}.jsonl`;
+  try {
+    execFileSync('node', ['-e', `require('fs').writeFileSync('${input}', 'Plan: inspect\\n  {"phase":"execution","action":"inspect"\\n')`]);
+    const result = runCli([input, '--json']);
+    assert.notEqual(result.status, 0);
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, /^Error: Input line 2 contains malformed JSON\n$/);
+  } finally {
+    execFileSync('node', ['-e', `require('fs').rmSync('${input}', { force: true })`]);
+  }
+});
