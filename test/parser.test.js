@@ -40,3 +40,24 @@ test('rejects JSONL primitives with an actionable input error', () => {
     /Input line 1 must be a JSON object; received null/
   );
 });
+
+test('rejects malformed JSON-looking object lines with the input line number', () => {
+  assert.throws(
+    () => parseInput('Plan: inspect\n  {"phase":"execution","action":"inspect"'),
+    /Input line 2 contains malformed JSON/
+  );
+});
+
+test('preserves the existing array diagnostic for valid JSON arrays', () => {
+  assert.throws(
+    () => parseInput('[{"phase":"plan"}]'),
+    /Input line 1 must be a JSON object; received array/
+  );
+});
+
+test('rejects truncated JSON-looking array lines', () => {
+  assert.throws(
+    () => parseInput('[{"phase":"plan"}'),
+    /Input line 1 contains malformed JSON/
+  );
+});
