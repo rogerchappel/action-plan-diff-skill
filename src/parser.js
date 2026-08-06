@@ -1,20 +1,21 @@
 export function parseInput(raw) {
-  const trimmed = raw.trim();
-  if (!trimmed) return [];
-  const lines = trimmed.split(/\r?\n/).filter(Boolean);
+  const lines = raw
+    .split(/\r?\n/)
+    .map((line, index) => ({ line, lineNumber: index + 1 }))
+    .filter(({ line }) => line.trim() !== '');
   const jsonRecords = [];
-  for (const [index, line] of lines.entries()) {
+  for (const [index, { line, lineNumber }] of lines.entries()) {
     try {
       const record = JSON.parse(line);
       if (record === null || typeof record !== 'object' || Array.isArray(record)) {
         const kind = record === null ? 'null' : Array.isArray(record) ? 'array' : typeof record;
-        throw new InvalidRecordError(`Input line ${index + 1} must be a JSON object; received ${kind}`);
+        throw new InvalidRecordError(`Input line ${lineNumber} must be a JSON object; received ${kind}`);
       }
       jsonRecords.push({ ...record, structured: true });
     } catch (error) {
       if (error instanceof InvalidRecordError) throw error;
       if (/^[{[]/.test(line.trimStart())) {
-        throw new InvalidRecordError(`Input line ${index + 1} contains malformed JSON`);
+        throw new InvalidRecordError(`Input line ${lineNumber} contains malformed JSON`);
       }
       jsonRecords.push(parsePlainTextLine(line, index));
     }
