@@ -73,9 +73,11 @@ action-plan-diff-skill <fixture.jsonl|notes.txt> [--format <markdown|json>] [--j
 ```
 
 `--json` is shorthand for `--format json`. Each JSONL line must contain an
-object; primitives and arrays are rejected with the input line number. Unknown
-options, extra positional arguments, missing option values, and unsupported
-formats print a concise error to stderr and exit nonzero.
+object; primitives and arrays are rejected with the input line number. A line
+whose first non-whitespace character is `{` or `[` is treated as JSON-looking
+input and rejected if it is malformed rather than interpreted as plain text.
+Unknown options, extra positional arguments, missing option values, and
+unsupported formats print a concise error to stderr and exit nonzero.
 
 Plain-text sections are supported for lightweight comparisons, but plain text
 cannot encode or prove typed `dryRun` and `approved` state. Use structured
