@@ -100,3 +100,16 @@ test('rejects malformed JSON-looking input with a concise line diagnostic', () =
     execFileSync('node', ['-e', `require('fs').rmSync('${input}', { force: true })`]);
   }
 });
+
+test('reports the physical CRLF line for malformed input after blank records', () => {
+  const input = `.tmp-cli-malformed-blank-lines-${process.pid}.jsonl`;
+  try {
+    execFileSync('node', ['-e', `require('fs').writeFileSync('${input}', '\\r\\nPlan: inspect\\r\\n  \\r\\n{"phase":"execution"\\r\\n')`]);
+    const result = runCli([input, '--json']);
+    assert.notEqual(result.status, 0);
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, /^Error: Input line 4 contains malformed JSON\n$/);
+  } finally {
+    execFileSync('node', ['-e', `require('fs').rmSync('${input}', { force: true })`]);
+  }
+});
