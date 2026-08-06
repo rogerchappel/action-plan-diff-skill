@@ -48,6 +48,29 @@ test('rejects malformed JSON-looking object lines with the input line number', (
   );
 });
 
+test('reports the physical line after leading and interior blank records', () => {
+  assert.throws(
+    () => parseInput('\n  \nPlan: inspect\n\t\n  {"phase":"execution"'),
+    /Input line 5 contains malformed JSON/
+  );
+});
+
+test('reports physical CRLF line numbers for non-object JSON', () => {
+  assert.throws(
+    () => parseInput('\r\nPlan: inspect\r\n\t\r\nnull\r\n'),
+    /Input line 4 must be a JSON object; received null/
+  );
+});
+
+test('ignores whitespace-only records without changing parsed record behavior', () => {
+  const records = parseInput('\nPlan: inspect\n  \n{"type":"tool","tool":"exec"}\n\t');
+
+  assert.equal(records.length, 2);
+  assert.equal(records[0].content, 'inspect');
+  assert.equal(records[0].index, 0);
+  assert.equal(records[1].structured, true);
+});
+
 test('preserves the existing array diagnostic for valid JSON arrays', () => {
   assert.throws(
     () => parseInput('[{"phase":"plan"}]'),
