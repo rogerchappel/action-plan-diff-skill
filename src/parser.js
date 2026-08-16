@@ -1,5 +1,6 @@
 export function parseInput(raw) {
-  const lines = raw
+  const input = raw.startsWith('\uFEFF') ? raw.slice(1) : raw;
+  const lines = input
     .split(/\r?\n/)
     .map((line, index) => ({ line, lineNumber: index + 1 }))
     .filter(({ line }) => line.trim() !== '');
