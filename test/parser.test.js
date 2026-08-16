@@ -8,6 +8,33 @@ test('parses jsonl records', () => {
   assert.match(records[0].text, /plan/);
 });
 
+test('accepts one UTF-8 BOM at the start of JSONL input', () => {
+  const jsonl = '{"role":"user","content":"Plan"}\n{"type":"tool","tool":"exec"}';
+
+  assert.deepEqual(parseInput(`\uFEFF${jsonl}`), parseInput(jsonl));
+});
+
+test('does not remove BOM characters away from the input boundary', () => {
+  assert.throws(
+    () => parseInput('Plan: inspect\n\uFEFF{"type":"tool","tool":"exec"}'),
+    /Input line 2 contains malformed JSON/
+  );
+});
+
+test('reports malformed BOM-prefixed JSON on physical line 1', () => {
+  assert.throws(
+    () => parseInput('\uFEFF{"phase":"execution"'),
+    /Input line 1 contains malformed JSON/
+  );
+});
+
+test('preserves CRLF and blank-line diagnostics after a leading BOM', () => {
+  assert.throws(
+    () => parseInput('\uFEFF\r\nPlan: inspect\r\n  \r\n{"phase":"execution"\r\n'),
+    /Input line 4 contains malformed JSON/
+  );
+});
+
 test('parses plain text lines', () => {
   const records = parseInput('Plan: inspect\nValidation: npm test');
   assert.equal(records.length, 2);

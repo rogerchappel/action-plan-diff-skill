@@ -76,6 +76,9 @@ action-plan-diff-skill <fixture.jsonl|notes.txt> [--format <markdown|json>] [--j
 object; primitives and arrays are rejected with the input line number. A line
 whose first non-whitespace character is `{` or `[` is treated as JSON-looking
 input and rejected if it is malformed rather than interpreted as plain text.
+Input files are UTF-8; one BOM is accepted only at the start of the file, while
+BOM characters elsewhere remain part of the input. Diagnostics use physical
+line numbers, including blank lines and CRLF input.
 Unknown options, extra positional arguments, missing option values, and
 unsupported formats print a concise error to stderr and exit nonzero.
 

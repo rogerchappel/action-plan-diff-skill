@@ -36,6 +36,37 @@ test('supports documented output formats and the json alias', () => {
   }
 });
 
+test('produces the same audit for BOM-prefixed and BOM-free JSONL', () => {
+  const withBomInput = `.tmp-cli-bom-${process.pid}.jsonl`;
+  const withoutBomInput = `.tmp-cli-no-bom-${process.pid}.jsonl`;
+  try {
+    const jsonl = '{"phase":"plan","action":"inspect","dryRun":true}\n{"phase":"execution","action":"inspect","dryRun":true}\n';
+    execFileSync('node', ['-e', `const fs = require('fs'); fs.writeFileSync('${withBomInput}', '\\uFEFF' + ${JSON.stringify(jsonl)}); fs.writeFileSync('${withoutBomInput}', ${JSON.stringify(jsonl)})`]);
+
+    const withBom = runCli([withBomInput, '--json']);
+    const withoutBom = runCli([withoutBomInput, '--json']);
+    assert.equal(withBom.status, 0, withBom.stderr);
+    assert.equal(withBom.stderr, '');
+    assert.deepEqual(JSON.parse(withBom.stdout), JSON.parse(withoutBom.stdout));
+  } finally {
+    execFileSync('node', ['-e', `const fs = require('fs'); fs.rmSync('${withBomInput}', { force: true }); fs.rmSync('${withoutBomInput}', { force: true })`]);
+  }
+});
+
+test('rejects malformed BOM-prefixed JSON on physical line 1', () => {
+  const input = `.tmp-cli-bom-malformed-${process.pid}.jsonl`;
+  try {
+    execFileSync('node', ['-e', `require('fs').writeFileSync('${input}', '\\uFEFF{"phase":"execution"\\r\\n')`]);
+    const result = runCli([input, '--json']);
+
+    assert.notEqual(result.status, 0);
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, /^Error: Input line 1 contains malformed JSON\n$/);
+  } finally {
+    execFileSync('node', ['-e', `require('fs').rmSync('${input}', { force: true })`]);
+  }
+});
+
 test('rejects options with missing values', () => {
   for (const args of [
     ['fixtures/sample.jsonl', '--format'],
