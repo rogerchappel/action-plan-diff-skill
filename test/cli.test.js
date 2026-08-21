@@ -8,7 +8,7 @@ const pkg = require('../package.json');
 
 test('prints usage help', () => {
   const output = execFileSync('node', ['src/cli.js', '--help'], { encoding: 'utf8' });
-  assert.match(output, /Usage: action-plan-diff-skill/);
+  assert.match(output, /Usage:\n  action-plan-diff-skill/);
   assert.match(output, /--format <markdown\|json>/);
   assert.match(output, /--json/);
   assert.match(output, /--output report\.md/);
@@ -18,6 +18,22 @@ test('prints usage help', () => {
 test('prints package version', () => {
   const output = execFileSync('node', ['src/cli.js', '--version'], { encoding: 'utf8' });
   assert.equal(output.trim(), pkg.version);
+});
+
+test('requires help and version to be standalone terminal modes', () => {
+  for (const args of [
+    ['--help', 'fixtures/sample.jsonl'],
+    ['fixtures/sample.jsonl', '--help'],
+    ['--version', '--json'],
+    ['--output', '.tmp-terminal-side-effect.md', '--help'],
+    ['--help', '--version']
+  ]) {
+    const result = runCli(args);
+    assert.notEqual(result.status, 0);
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, /^Error: --(?:help|version) must be used alone\n$/);
+  }
+  assert.equal(spawnSync('node', ['-e', "process.exit(require('fs').existsSync('.tmp-terminal-side-effect.md') ? 1 : 0)"]).status, 0);
 });
 
 function runCli(args) {
@@ -34,6 +50,21 @@ test('supports documented output formats and the json alias', () => {
     assert.equal(result.status, 0, result.stderr);
     assert.equal(result.stderr, '');
   }
+});
+
+test('rejects conflicting output format selectors regardless of ordering or output file', () => {
+  const output = `.tmp-cli-conflicting-format-${process.pid}.md`;
+  for (const args of [
+    ['fixtures/sample.jsonl', '--json', '--format', 'markdown'],
+    ['--format', 'markdown', '--json', 'fixtures/sample.jsonl'],
+    ['fixtures/sample.jsonl', '--output', output, '--format', 'markdown', '--json']
+  ]) {
+    const result = runCli(args);
+    assert.notEqual(result.status, 0);
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, /^Error: Conflicting output formats: markdown and json\n$/);
+  }
+  assert.equal(spawnSync('node', ['-e', `process.exit(require('fs').existsSync('${output}') ? 1 : 0)`]).status, 0);
 });
 
 test('produces the same audit for BOM-prefixed and BOM-free JSONL', () => {
