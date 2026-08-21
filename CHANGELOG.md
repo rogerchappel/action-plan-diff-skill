@@ -9,6 +9,8 @@ published.
 
 ### Fixed
 
+- Make help and version standalone CLI modes, and reject conflicting output
+  format selectors before reading input or writing a report.
 - Require non-empty action identities on structured plan and execution records,
   normalize action and target matching, and block incomplete records instead of
   matching them through a shared fallback identity.

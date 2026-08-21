@@ -69,10 +69,18 @@ npm pack --dry-run
 ## CLI
 
 ```sh
-action-plan-diff-skill <fixture.jsonl|notes.txt> [--format <markdown|json>] [--json] [--output report.md] [--help] [--version]
+action-plan-diff-skill <fixture.jsonl|notes.txt> [--format <markdown|json> | --json] [--output report.md]
+action-plan-diff-skill --help
+action-plan-diff-skill --version
 ```
 
-`--json` is shorthand for `--format json`. Each JSONL line must contain an
+`--help` and `--version` are standalone terminal modes; combining either with
+an input, another option, or each other is an error and never reads or writes a
+report. `--json` is shorthand for `--format json`. Repeating equivalent JSON
+selectors is accepted, but combining `--json` with `--format markdown` is an
+error regardless of flag order.
+
+Each JSONL line must contain an
 object; primitives and arrays are rejected with the input line number. A line
 whose first non-whitespace character is `{` or `[` is treated as JSON-looking
 input and rejected if it is malformed rather than interpreted as plain text.

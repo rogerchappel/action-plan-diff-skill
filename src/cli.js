@@ -41,7 +41,10 @@ function parseArgs(argv) {
   return args;
 }
 
-const usage = 'Usage: action-plan-diff-skill <fixture.jsonl|notes.txt> [--format <markdown|json>] [--json] [--output report.md] [--help] [--version]';
+const usage = `Usage:
+  action-plan-diff-skill <fixture.jsonl|notes.txt> [--format <markdown|json> | --json] [--output report.md]
+  action-plan-diff-skill --help
+  action-plan-diff-skill --version`;
 
 try {
   const args = parseArgs(process.argv.slice(2));
