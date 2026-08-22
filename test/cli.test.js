@@ -52,6 +52,27 @@ test('supports documented output formats and the json alias', () => {
   }
 });
 
+test('reports duplicate JSONL identities with occurrence-aware cardinality', () => {
+  const input = `.tmp-cli-duplicate-cardinality-${process.pid}.jsonl`;
+  try {
+    const jsonl = [
+      { phase: 'plan', action: 'send', target: 'slack', dryRun: true },
+      { phase: 'plan', action: ' SEND ', target: ' SLACK ', dryRun: true },
+      { phase: 'execution', action: 'send', target: 'slack', dryRun: true }
+    ].map(JSON.stringify).join('\n');
+    execFileSync('node', ['-e', `require('fs').writeFileSync('${input}', ${JSON.stringify(jsonl)})`]);
+
+    const result = runCli([input, '--json']);
+    assert.equal(result.status, 0, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.deepEqual(report.stats, { planned: 2, executed: 1 });
+    assert.equal(report.findings.filter((finding) => finding.code === 'planned-action-not-executed').length, 1);
+    assert.ok(!report.findings.some((finding) => finding.code === 'plan-matched'));
+  } finally {
+    execFileSync('node', ['-e', `require('fs').rmSync('${input}', { force: true })`]);
+  }
+});
+
 test('rejects conflicting output format selectors regardless of ordering or output file', () => {
   const output = `.tmp-cli-conflicting-format-${process.pid}.md`;
   for (const args of [
