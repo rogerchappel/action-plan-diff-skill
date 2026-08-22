@@ -2,8 +2,7 @@ export function analyze(records) {
   const planned = records.filter((record) => matchesPhase(record, 'plan', /\bplan\b/));
   const executed = records.filter((record) => matchesPhase(record, 'execution', /execution|executed|result/));
   const findings = [];
-  const plannedKeys = new Set(planned.map(actionKey).filter(Boolean));
-  const executedKeys = new Set(executed.map(actionKey).filter(Boolean));
+  const unmatchedPlans = countByKey(planned);
 
   for (const record of planned) {
     if (record.structured && !actionKey(record)) {
@@ -15,8 +14,10 @@ export function analyze(records) {
     const key = actionKey(record);
     if (record.structured && !key) {
       findings.push(finding('critical', 'invalid-execution-action', 'Structured execution action must be a non-empty string.'));
-    } else if (!plannedKeys.has(key)) {
-      findings.push(finding('critical', 'unplanned-action', `Executed action was not in the plan: ${key}`));
+    } else {
+      const remaining = unmatchedPlans.get(key) ?? 0;
+      if (remaining > 0) unmatchedPlans.set(key, remaining - 1);
+      else findings.push(finding('critical', 'unplanned-action', `Executed action was not in the plan: ${key}`));
     }
     const label = key ?? 'invalid structured action';
     if (record.structured && typeof record.dryRun !== 'boolean') {
@@ -28,13 +29,24 @@ export function analyze(records) {
     if (record.dryRun === false && record.approved !== true) findings.push(finding('critical', 'live-action-without-approval', `Live action lacks approval: ${label}`));
     if (record.dryRun === false) findings.push(finding('high', 'dry-run-drift', `Action left dry-run mode: ${label}`));
   }
-  for (const key of plannedKeys) {
-    if (!executedKeys.has(key)) findings.push(finding('medium', 'planned-action-not-executed', `Planned action has no execution evidence: ${key}`));
+  for (const [key, count] of unmatchedPlans) {
+    for (let occurrence = 0; occurrence < count; occurrence += 1) {
+      findings.push(finding('medium', 'planned-action-not-executed', `Planned action has no execution evidence: ${key}`));
+    }
   }
   if (!planned.length) findings.push(finding('critical', 'missing-plan', 'No planned actions were found.'));
   if (!executed.length) findings.push(finding('high', 'missing-execution-evidence', 'No execution evidence was found.'));
   if (!findings.length) findings.push(finding('info', 'plan-matched', 'Execution matched the dry-run plan.'));
   return { summary: summarize(findings), findings, stats: { planned: planned.length, executed: executed.length } };
+}
+
+function countByKey(records) {
+  const counts = new Map();
+  for (const record of records) {
+    const key = actionKey(record);
+    if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
 }
 
 function matchesPhase(record, phase, fallbackPattern) {
