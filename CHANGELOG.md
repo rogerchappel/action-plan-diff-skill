@@ -9,6 +9,8 @@ published.
 
 ### Fixed
 
+- Match normalized plan and execution identities by occurrence count, reporting
+  missing or excess duplicate records deterministically.
 - Make help and version standalone CLI modes, and reject conflicting output
   format selectors before reading input or writing a report.
 - Require non-empty action identities on structured plan and execution records,

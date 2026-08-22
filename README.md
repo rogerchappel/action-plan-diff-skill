@@ -52,6 +52,11 @@ both `action` and `target`; an omitted or blank target means `local`, while
 different non-empty targets remain distinct identities. Missing, empty, or
 whitespace-only actions produce the blocking `invalid-plan-action` or
 `invalid-execution-action` finding and can never produce `plan-matched`.
+Matching is occurrence-aware: each execution consumes one equivalent planned
+record. Duplicate plans therefore require the same number of execution records,
+with one `planned-action-not-executed` finding for each missing occurrence.
+Likewise, each duplicate execution beyond the planned count is reported as an
+`unplanned-action`. Only equal cardinalities can produce `plan-matched`.
 
 ## Verification
 
