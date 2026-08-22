@@ -126,6 +126,34 @@ test('keeps otherwise identical structured actions distinct by target', () => {
   assert.ok(!result.findings.some((finding) => finding.code === 'plan-matched'));
 });
 
+test('requires execution evidence for every duplicate planned occurrence', () => {
+  const result = analyze(parseInput(`{"phase":"plan","action":" Send ","target":" Slack ","dryRun":true}
+{"phase":"plan","action":"send","target":"slack","dryRun":true}
+{"phase":"execution","action":"SEND","target":"SLACK","dryRun":true}`));
+
+  assert.equal(result.summary.status, 'ready');
+  assert.deepEqual(result.stats, { planned: 2, executed: 1 });
+  assert.deepEqual(
+    result.findings.filter((finding) => finding.code === 'planned-action-not-executed'),
+    [{ severity: 'medium', code: 'planned-action-not-executed', message: 'Planned action has no execution evidence: send@slack' }]
+  );
+  assert.ok(!result.findings.some((finding) => finding.code === 'plan-matched'));
+});
+
+test('flags every execution occurrence beyond the planned cardinality', () => {
+  const result = analyze(parseInput(`{"phase":"plan","action":"inspect","target":"","dryRun":true}
+{"phase":"execution","action":" INSPECT ","dryRun":true}
+{"phase":"execution","action":"inspect","target":"local","dryRun":true}`));
+
+  assert.equal(result.summary.status, 'blocked');
+  assert.deepEqual(result.stats, { planned: 1, executed: 2 });
+  assert.deepEqual(
+    result.findings.filter((finding) => finding.code === 'unplanned-action'),
+    [{ severity: 'critical', code: 'unplanned-action', message: 'Executed action was not in the plan: inspect@local' }]
+  );
+  assert.ok(!result.findings.some((finding) => finding.code === 'plan-matched'));
+});
+
 test('requires approved true for live execution', () => {
   for (const approved of [undefined, false]) {
     const approval = approved === undefined ? '' : `,"approved":${approved}`;
