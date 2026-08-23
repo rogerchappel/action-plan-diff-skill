@@ -73,6 +73,29 @@ test('reports duplicate JSONL identities with occurrence-aware cardinality', () 
   }
 });
 
+test('reports delimiter-containing JSONL identities without cross-matching', () => {
+  const input = `.tmp-cli-delimiter-identity-${process.pid}.jsonl`;
+  try {
+    const jsonl = [
+      { phase: 'plan', action: 'notify@team', target: 'slack', dryRun: true },
+      { phase: 'plan', action: 'notify@team', target: 'slack', dryRun: true },
+      { phase: 'execution', action: 'notify@team', target: 'slack', dryRun: true },
+      { phase: 'execution', action: 'notify', target: 'team@slack', dryRun: true }
+    ].map(JSON.stringify).join('\n');
+    execFileSync('node', ['-e', `require('fs').writeFileSync('${input}', ${JSON.stringify(jsonl)})`]);
+
+    const result = runCli([input, '--json']);
+    assert.equal(result.status, 0, result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.deepEqual(report.stats, { planned: 2, executed: 2 });
+    assert.match(report.findings.find((finding) => finding.code === 'unplanned-action').message, /"notify" at "team@slack"/);
+    assert.match(report.findings.find((finding) => finding.code === 'planned-action-not-executed').message, /"notify@team" at "slack"/);
+    assert.ok(!report.findings.some((finding) => finding.code === 'plan-matched'));
+  } finally {
+    execFileSync('node', ['-e', `require('fs').rmSync('${input}', { force: true })`]);
+  }
+});
+
 test('rejects conflicting output format selectors regardless of ordering or output file', () => {
   const output = `.tmp-cli-conflicting-format-${process.pid}.md`;
   for (const args of [
