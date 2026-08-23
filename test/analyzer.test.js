@@ -126,6 +126,22 @@ test('keeps otherwise identical structured actions distinct by target', () => {
   assert.ok(!result.findings.some((finding) => finding.code === 'plan-matched'));
 });
 
+test('does not cross-match delimiter-containing action and target pairs', () => {
+  const result = analyze(parseInput(`{"phase":"plan","action":"notify@team","target":"slack","dryRun":true}
+{"phase":"execution","action":"notify","target":"team@slack","dryRun":true}`));
+
+  assert.equal(result.summary.status, 'blocked');
+  assert.deepEqual(
+    result.findings.filter((finding) => finding.code === 'unplanned-action'),
+    [{ severity: 'critical', code: 'unplanned-action', message: 'Executed action was not in the plan: "notify" at "team@slack"' }]
+  );
+  assert.deepEqual(
+    result.findings.filter((finding) => finding.code === 'planned-action-not-executed'),
+    [{ severity: 'medium', code: 'planned-action-not-executed', message: 'Planned action has no execution evidence: "notify@team" at "slack"' }]
+  );
+  assert.ok(!result.findings.some((finding) => finding.code === 'plan-matched'));
+});
+
 test('requires execution evidence for every duplicate planned occurrence', () => {
   const result = analyze(parseInput(`{"phase":"plan","action":" Send ","target":" Slack ","dryRun":true}
 {"phase":"plan","action":"send","target":"slack","dryRun":true}
@@ -135,7 +151,7 @@ test('requires execution evidence for every duplicate planned occurrence', () =>
   assert.deepEqual(result.stats, { planned: 2, executed: 1 });
   assert.deepEqual(
     result.findings.filter((finding) => finding.code === 'planned-action-not-executed'),
-    [{ severity: 'medium', code: 'planned-action-not-executed', message: 'Planned action has no execution evidence: send@slack' }]
+    [{ severity: 'medium', code: 'planned-action-not-executed', message: 'Planned action has no execution evidence: "send" at "slack"' }]
   );
   assert.ok(!result.findings.some((finding) => finding.code === 'plan-matched'));
 });
@@ -149,7 +165,7 @@ test('flags every execution occurrence beyond the planned cardinality', () => {
   assert.deepEqual(result.stats, { planned: 1, executed: 2 });
   assert.deepEqual(
     result.findings.filter((finding) => finding.code === 'unplanned-action'),
-    [{ severity: 'critical', code: 'unplanned-action', message: 'Executed action was not in the plan: inspect@local' }]
+    [{ severity: 'critical', code: 'unplanned-action', message: 'Executed action was not in the plan: "inspect" at "local"' }]
   );
   assert.ok(!result.findings.some((finding) => finding.code === 'plan-matched'));
 });
