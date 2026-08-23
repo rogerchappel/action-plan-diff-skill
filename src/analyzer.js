@@ -12,14 +12,14 @@ export function analyze(records) {
 
   for (const record of executed) {
     const key = actionKey(record);
+    const label = actionLabel(record) ?? 'invalid structured action';
     if (record.structured && !key) {
       findings.push(finding('critical', 'invalid-execution-action', 'Structured execution action must be a non-empty string.'));
     } else {
       const remaining = unmatchedPlans.get(key) ?? 0;
       if (remaining > 0) unmatchedPlans.set(key, remaining - 1);
-      else findings.push(finding('critical', 'unplanned-action', `Executed action was not in the plan: ${key}`));
+      else findings.push(finding('critical', 'unplanned-action', `Executed action was not in the plan: ${label}`));
     }
-    const label = key ?? 'invalid structured action';
     if (record.structured && typeof record.dryRun !== 'boolean') {
       findings.push(finding('critical', 'invalid-execution-dry-run', `Structured execution dryRun must be boolean: ${label}`));
     }
@@ -31,7 +31,7 @@ export function analyze(records) {
   }
   for (const [key, count] of unmatchedPlans) {
     for (let occurrence = 0; occurrence < count; occurrence += 1) {
-      findings.push(finding('medium', 'planned-action-not-executed', `Planned action has no execution evidence: ${key}`));
+      findings.push(finding('medium', 'planned-action-not-executed', `Planned action has no execution evidence: ${actionLabelFromKey(key)}`));
     }
   }
   if (!planned.length) findings.push(finding('critical', 'missing-plan', 'No planned actions were found.'));
@@ -54,10 +54,28 @@ function matchesPhase(record, phase, fallbackPattern) {
 }
 
 function actionKey(record) {
+  const identity = actionIdentity(record);
+  return identity ? JSON.stringify(identity) : null;
+}
+
+function actionLabel(record) {
+  const identity = actionIdentity(record);
+  return identity ? formatIdentity(identity) : null;
+}
+
+function actionLabelFromKey(key) {
+  return formatIdentity(JSON.parse(key));
+}
+
+function actionIdentity(record) {
   if (record.structured && (typeof record.action !== 'string' || !record.action.trim())) return null;
   const action = String(record.action ?? record.content ?? 'unknown').trim().toLowerCase();
   const target = String(record.target ?? 'local').trim().toLowerCase() || 'local';
-  return `${action}@${target}`;
+  return [action, target];
+}
+
+function formatIdentity([action, target]) {
+  return `${JSON.stringify(action)} at ${JSON.stringify(target)}`;
 }
 
 function finding(severity, code, message) {
