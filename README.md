@@ -49,7 +49,11 @@ contract findings instead of a `plan-matched` result.
 Every structured plan and execution record must also include `action` as a
 non-empty string. Matching trims surrounding whitespace and ignores case for
 both `action` and `target`; an omitted or blank target means `local`, while
-different non-empty targets remain distinct identities. Missing, empty, or
+different non-empty targets remain distinct identities. Internally, matching
+uses the normalized action and target as a structured pair, so delimiter
+characters in either value cannot make distinct pairs equivalent. Findings
+display identities as quoted values in the unambiguous form `"action" at
+"target"`. Missing, empty, or
 whitespace-only actions produce the blocking `invalid-plan-action` or
 `invalid-execution-action` finding and can never produce `plan-matched`.
 Matching is occurrence-aware: each execution consumes one equivalent planned
