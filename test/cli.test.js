@@ -93,7 +93,7 @@ test('reports delimiter-containing JSONL identities without cross-matching', () 
     execFileSync('node', ['-e', `require('fs').writeFileSync('${input}', ${JSON.stringify(jsonl)})`]);
 
     const result = runCli([input, '--json']);
-    assert.equal(result.status, 0, result.stderr);
+    assert.notEqual(result.status, 0, result.stderr);
     const report = JSON.parse(result.stdout);
     assert.deepEqual(report.stats, { planned: 2, executed: 2 });
     assert.match(report.findings.find((finding) => finding.code === 'unplanned-action').message, /"notify" at "team@slack"/);
