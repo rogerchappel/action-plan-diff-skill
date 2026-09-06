@@ -99,6 +99,11 @@ line numbers, including blank lines and CRLF input.
 Unknown options, extra positional arguments, missing option values, and
 unsupported formats print a concise error to stderr and exit nonzero.
 
+Audit output is always printed or written before the CLI exits. Reports with
+`summary.status: blocked` (one or more critical or high findings) exit nonzero,
+including with `--output`; ready reports exit zero. Standalone `--help` and
+`--version` also exit zero, while argument and input errors remain nonzero.
+
 Plain-text sections are supported for lightweight comparisons, but plain text
 cannot encode or prove typed `dryRun` and `approved` state. Use structured
 JSONL whenever the report is intended as execution-boundary evidence.
