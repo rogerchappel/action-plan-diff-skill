@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { access, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { tmpdir } from 'node:os';
@@ -119,10 +119,14 @@ try {
     JSON.stringify({ phase: 'plan', dryRun: true }),
     JSON.stringify({ phase: 'execution', dryRun: true })
   ].join('\n'));
-  const invalidIdentityReport = JSON.parse(execFileSync(installedBin, [invalidIdentityFixture, '--json'], {
+  const invalidIdentityResult = spawnSync(installedBin, [invalidIdentityFixture, '--json'], {
     cwd: consumerDir,
     encoding: 'utf8'
-  }));
+  });
+  if (invalidIdentityResult.status === 0 || invalidIdentityResult.stderr !== '') {
+    throw new Error('installed CLI did not return a clean nonzero blocker exit');
+  }
+  const invalidIdentityReport = JSON.parse(invalidIdentityResult.stdout);
   const invalidIdentityCodes = new Set(invalidIdentityReport.findings.map((finding) => finding.code));
   if (invalidIdentityReport.summary.status !== 'blocked'
     || !invalidIdentityCodes.has('invalid-plan-action')

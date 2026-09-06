@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { runAudit } from './index.js';
+import { analyze, parseInput, renderReport } from './index.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json');
@@ -56,9 +56,11 @@ try {
     console.error(usage);
     process.exitCode = 1;
   } else {
-    const report = runAudit(readFileSync(args.file, 'utf8'), { format: args.format });
+    const result = analyze(parseInput(readFileSync(args.file, 'utf8')));
+    const report = renderReport(result, { format: args.format });
     if (args.output) writeFileSync(args.output, report);
     else process.stdout.write(report);
+    if (result.summary.status === 'blocked') process.exitCode = 1;
   }
 } catch (error) {
   console.error(`Error: ${error.message}`);

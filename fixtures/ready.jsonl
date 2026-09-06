@@ -1,0 +1,2 @@
+{"phase":"plan","action":"inspect","target":"repository","approval":"required","dryRun":true}
+{"phase":"execution","action":"inspect","target":"repository","approved":true,"dryRun":true}

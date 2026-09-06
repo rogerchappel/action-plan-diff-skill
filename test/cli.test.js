@@ -47,9 +47,17 @@ test('supports documented output formats and the json alias', () => {
     ['fixtures/sample.jsonl', '--json']
   ]) {
     const result = runCli(args);
-    assert.equal(result.status, 0, result.stderr);
+    assert.notEqual(result.status, 0, result.stderr);
     assert.equal(result.stderr, '');
+    assert.match(result.stdout, /(?:Status: blocked|"status": "blocked")/);
   }
+});
+
+test('exits zero for a ready audit report', () => {
+  const result = runCli(['fixtures/ready.jsonl', '--json']);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stderr, '');
+  assert.equal(JSON.parse(result.stdout).summary.status, 'ready');
 });
 
 test('reports duplicate JSONL identities with occurrence-aware cardinality', () => {
@@ -85,7 +93,7 @@ test('reports delimiter-containing JSONL identities without cross-matching', () 
     execFileSync('node', ['-e', `require('fs').writeFileSync('${input}', ${JSON.stringify(jsonl)})`]);
 
     const result = runCli([input, '--json']);
-    assert.equal(result.status, 0, result.stderr);
+    assert.notEqual(result.status, 0, result.stderr);
     const report = JSON.parse(result.stdout);
     assert.deepEqual(report.stats, { planned: 2, executed: 2 });
     assert.match(report.findings.find((finding) => finding.code === 'unplanned-action').message, /"notify" at "team@slack"/);
@@ -173,9 +181,9 @@ test('writes a report to the requested output file', () => {
   const output = `.tmp-cli-output-${process.pid}.md`;
   try {
     const result = runCli(['fixtures/sample.jsonl', '--output', output]);
-    assert.equal(result.status, 0, result.stderr);
+    assert.notEqual(result.status, 0, result.stderr);
     assert.equal(result.stdout, '');
-    assert.match(execFileSync('node', ['-e', `process.stdout.write(require('fs').readFileSync('${output}', 'utf8'))`], { encoding: 'utf8' }), /Skill Run Report/);
+    assert.match(execFileSync('node', ['-e', `process.stdout.write(require('fs').readFileSync('${output}', 'utf8'))`], { encoding: 'utf8' }), /Status: blocked/);
   } finally {
     execFileSync('node', ['-e', `require('fs').rmSync('${output}', { force: true })`]);
   }
@@ -186,7 +194,7 @@ test('reports malformed structured execution state as blocking JSON', () => {
   try {
     execFileSync('node', ['-e', `require('fs').writeFileSync('${input}', '{"phase":"plan","action":"inspect","dryRun":true}\\n{"phase":"execution","action":"inspect","dryRun":"true"}\\n')`]);
     const result = runCli([input, '--json']);
-    assert.equal(result.status, 0, result.stderr);
+    assert.notEqual(result.status, 0, result.stderr);
     assert.equal(JSON.parse(result.stdout).summary.status, 'blocked');
     assert.match(result.stdout, /invalid-execution-dry-run/);
   } finally {
