@@ -12,7 +12,7 @@
   },
   "scripts": {
     "test": "node --test",
-    "check": "node --check src/*.js test/*.js",
+    "check": "node scripts/check-syntax.mjs",
     "lint": "npm run check",
     "build": "node scripts/build-check.js",
     "smoke": "node scripts/smoke-cli.mjs",
