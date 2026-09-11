@@ -9,6 +9,9 @@ published.
 
 ### Fixed
 
+- Run `npm run check` per file across `src/`, `test/`, and `scripts/` so a syntax
+  error in any JavaScript file fails the release gate instead of only the first
+  glob expansion being validated by `node --check`.
 - Make blocked audit reports exit nonzero in stdout and `--output` modes while
   retaining zero exits for ready reports and standalone help/version commands.
 - Match normalized plan and execution identities by occurrence count, reporting

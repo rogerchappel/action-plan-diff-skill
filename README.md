@@ -75,6 +75,10 @@ npm run release:check
 npm pack --dry-run
 ```
 
+`npm run check` runs `node --check` once per JavaScript file under `src/`,
+`test/`, and `scripts/` and reports every failure, because a single
+`node --check a.js b.js` invocation only validates its first file.
+
 ## CLI
 
 ```sh
