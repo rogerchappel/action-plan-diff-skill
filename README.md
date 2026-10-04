@@ -141,3 +141,14 @@ The analyzer is intentionally deterministic and rule-based. It cannot prove inte
 ## Release notes
 
 Before tagging a release, confirm the smoke fixture still represents the intended workflow and summarize any changed output, limitations, or operator steps in the PR.
+
+For CI code-scanning annotations, select SARIF 2.1.0 output:
+
+```sh
+node src/cli.js fixtures/sample.jsonl --format sarif --output report.sarif
+```
+
+The SARIF run maps critical and high findings to `error`, medium findings to
+`warning`, and lower-severity findings to `note`; rule identifiers are finding
+codes. As with other formats, blocked reports are emitted before the CLI exits
+nonzero.

@@ -9,9 +9,9 @@ const pkg = require('../package.json');
 test('prints usage help', () => {
   const output = execFileSync('node', ['src/cli.js', '--help'], { encoding: 'utf8' });
   assert.match(output, /Usage:\n  action-plan-diff-skill/);
-  assert.match(output, /--format <markdown\|json>/);
+  assert.match(output, /--format <markdown\|json\|sarif>/);
   assert.match(output, /--json/);
-  assert.match(output, /--output report\.md/);
+  assert.match(output, /--output report/);
   assert.match(output, /--version/);
 });
 
@@ -44,12 +44,14 @@ test('supports documented output formats and the json alias', () => {
   for (const args of [
     ['fixtures/sample.jsonl', '--format', 'markdown'],
     ['fixtures/sample.jsonl', '--format', 'json'],
+    ['fixtures/sample.jsonl', '--format', 'sarif'],
     ['fixtures/sample.jsonl', '--json']
   ]) {
     const result = runCli(args);
     assert.notEqual(result.status, 0, result.stderr);
     assert.equal(result.stderr, '');
-    assert.match(result.stdout, /(?:Status: blocked|"status": "blocked")/);
+    if (args.includes('sarif')) assert.equal(JSON.parse(result.stdout).version, '2.1.0');
+    else assert.match(result.stdout, /(?:Status: blocked|"status": "blocked")/);
   }
 });
 

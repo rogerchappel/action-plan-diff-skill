@@ -30,8 +30,8 @@ function parseArgs(argv) {
     else if (!args.file) args.file = token;
     else throw new Error(`Unexpected argument "${token}"`);
   }
-  const unsupportedFormat = [...requestedFormats].find((format) => !['markdown', 'json'].includes(format));
-  if (unsupportedFormat) throw new Error(`Unsupported format "${unsupportedFormat}" (expected markdown or json)`);
+  const unsupportedFormat = [...requestedFormats].find((format) => !['markdown', 'json', 'sarif'].includes(format));
+  if (unsupportedFormat) throw new Error(`Unsupported format "${unsupportedFormat}" (expected markdown, json, or sarif)`);
   if (requestedFormats.has('markdown') && requestedFormats.has('json')) {
     throw new Error('Conflicting output formats: markdown and json');
   }
@@ -42,7 +42,7 @@ function parseArgs(argv) {
 }
 
 const usage = `Usage:
-  action-plan-diff-skill <fixture.jsonl|notes.txt> [--format <markdown|json> | --json] [--output report.md]
+  action-plan-diff-skill <fixture.jsonl|notes.txt> [--format <markdown|json|sarif> | --json] [--output report]
   action-plan-diff-skill --help
   action-plan-diff-skill --version`;
 

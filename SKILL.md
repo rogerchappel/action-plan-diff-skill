@@ -25,3 +25,6 @@ state. Use JSONL for execution-boundary review.
 
 ## Validation
 Run `npm test`, `npm run check`, `npm run build`, and `npm run smoke` from the project root.
+
+For CI code-scanning annotations, pass `--format sarif` (SARIF 2.1.0); finding
+codes become rule IDs and severity determines the SARIF level.
