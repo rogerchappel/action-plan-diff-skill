@@ -9,6 +9,7 @@ published.
 
 ### Fixed
 
+- Run the CLI smoke script from `npm run smoke` so release checks verify ready and blocked exit codes alongside help and version modes.
 - Run `npm run check` per file across `src/`, `test/`, and `scripts/` so a syntax
   error in any JavaScript file fails the release gate instead of only the first
   glob expansion being validated by `node --check`.
