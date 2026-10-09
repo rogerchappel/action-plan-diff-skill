@@ -15,7 +15,7 @@
     "check": "node scripts/check-syntax.mjs",
     "lint": "npm run check",
     "build": "node scripts/build-check.js",
-    "smoke": "node src/cli.js fixtures/ready.jsonl --format markdown",
+    "smoke": "node scripts/smoke-cli.mjs",
     "package:smoke": "node scripts/verify-package-bin.mjs",
     "release:readiness": "node scripts/validate-release-readiness.mjs",
     "release:check": "npm run release:readiness && npm run lint && npm test && npm run build && npm run smoke && npm run package:smoke"
