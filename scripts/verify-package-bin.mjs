@@ -84,6 +84,16 @@ try {
   });
   const [packedArtifact] = JSON.parse(packOutput);
   const tarball = join(consumerDir, packedArtifact.filename);
+  const packedFiles = new Set(packedArtifact.files.map((file) => file.path));
+  const packageTargets = [
+    ...Object.values(pkg.bin ?? {}),
+    ...(pkg.exports && typeof pkg.exports === 'object' ? Object.values(pkg.exports) : [pkg.exports]),
+    ...(pkg.main ? [pkg.main] : [])
+  ].filter(Boolean).map((target) => target.replace(/^\.\//, ''));
+  const missingPackageTargets = [...new Set(packageTargets)].filter((target) => !packedFiles.has(target));
+  if (missingPackageTargets.length > 0) {
+    throw new Error(`packed artifact missing declared package target(s): ${missingPackageTargets.join(', ')}`);
+  }
 
   execFileSync('npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund', tarball], {
     cwd: consumerDir,
@@ -112,6 +122,13 @@ try {
   }).trim();
   if (installedVersion !== pkg.version) {
     throw new Error(`installed CLI --version returned ${JSON.stringify(installedVersion)}, expected ${pkg.version}`);
+  }
+  const installedHelp = execFileSync(installedBin, ['--help'], {
+    cwd: consumerDir,
+    encoding: 'utf8'
+  });
+  if (!installedHelp.includes('Usage:') || !installedHelp.includes('--help')) {
+    throw new Error('installed CLI --help did not display expected usage');
   }
 
   const invalidIdentityFixture = join(consumerDir, 'missing-action.jsonl');
