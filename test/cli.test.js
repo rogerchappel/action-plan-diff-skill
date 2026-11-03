@@ -55,6 +55,26 @@ test('supports documented output formats and the json alias', () => {
   }
 });
 
+test('writes fixture-backed SARIF 2.1.0 to a file and exits nonzero for blocked findings', () => {
+  const output = `.tmp-cli-sarif-${process.pid}.sarif`;
+  try {
+    const result = runCli(['fixtures/sample.jsonl', '--format', 'sarif', '--output', output]);
+    assert.equal(result.status, 1);
+    assert.equal(result.stdout, '');
+    assert.equal(result.stderr, '');
+
+    const report = JSON.parse(execFileSync('node', ['-e', `process.stdout.write(require('fs').readFileSync('${output}', 'utf8'))`], { encoding: 'utf8' }));
+    assert.equal(report.version, '2.1.0');
+    assert.equal(report.$schema, 'https://json.schemastore.org/sarif-2.1.0.json');
+    assert.equal(report.runs.length, 1);
+    assert.equal(report.runs[0].tool.driver.name, 'action-plan-diff-skill');
+    assert.ok(report.runs[0].results.length > 0);
+    assert.ok(report.runs[0].results.every((finding) => finding.ruleId && finding.message.text));
+  } finally {
+    execFileSync('node', ['-e', `require('fs').rmSync('${output}', { force: true })`]);
+  }
+});
+
 test('exits zero for a ready audit report', () => {
   const result = runCli(['fixtures/ready.jsonl', '--json']);
   assert.equal(result.status, 0, result.stderr);
