@@ -18,7 +18,8 @@
     "smoke": "node scripts/smoke-cli.mjs",
     "package:smoke": "node scripts/verify-package-bin.mjs",
     "release:readiness": "node scripts/validate-release-readiness.mjs",
-    "release:check": "npm run release:readiness && npm run lint && npm test && npm run build && npm run smoke && npm run package:smoke"
+    "release:check": "npm run release:readiness && npm run lint && npm test && npm run test:sarif && npm run build && npm run smoke && npm run package:smoke",
+    "test:sarif": "node --test test/cli.test.js"
   },
   "keywords": [
     "agent",
