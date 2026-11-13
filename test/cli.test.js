@@ -249,3 +249,21 @@ test('reports the physical CRLF line for malformed input after blank records', (
     execFileSync('node', ['-e', `require('fs').rmSync('${input}', { force: true })`]);
   }
 });
+
+test('does not leave Markdown or SARIF artifacts when input processing fails', () => {
+  const input = `.tmp-cli-output-failure-${process.pid}.jsonl`;
+  const outputs = [[`${input}.md`, 'markdown'], [`${input}.sarif`, 'sarif']];
+  try {
+    require('node:fs').writeFileSync(input, '{malformed json\n');
+    for (const [output, format] of outputs) {
+      const result = runCli([input, '--format', format, '--output', output]);
+      assert.notEqual(result.status, 0);
+      assert.equal(result.stdout, '');
+      assert.match(result.stderr, /^Error: Input line 1 contains malformed JSON\n$/);
+      assert.equal(require('node:fs').existsSync(output), false, `unexpected artifact at ${output}`);
+    }
+  } finally {
+    require('node:fs').rmSync(input, { force: true });
+    for (const [output] of outputs) require('node:fs').rmSync(output, { force: true });
+  }
+});
